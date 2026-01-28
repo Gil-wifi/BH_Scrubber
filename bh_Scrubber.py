@@ -458,7 +458,7 @@ if __name__ == "__main__":
     
     offset_weeks = 0
     if is_fiscal:
-        off_str = input("Enter the shift in weeks (e.g., 5): ").strip()
+        off_str = input("Enter the shift in weeks (e.g., +5 or -5): ").strip()
         offset_weeks = int(off_str) if off_str else 0
 
     # 2. Date Calculations

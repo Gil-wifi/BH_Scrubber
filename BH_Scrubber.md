@@ -47,7 +47,7 @@ Holiday data is populated into the calendar matrix.
 * **Date Format:** `Thu 01/01/26` (Day abbreviation + DD/MM/YY)
 * **Calendar Types:**
   * **Solar:** Jan 1st - Dec 31st.
-  * **Fiscal:** Custom start date (Jan 1st + Offset Weeks). Spans full year duration.
+  * **Fiscal:** Custom start date (Jan 1st + Offset Weeks). Supports positive (`+`) and negative (`-`) shifts. Spans full year duration.
 * **Visual Styling (Output File):**
   * **Row Styling (Columns A-ND):**
     * **Supported Countries (Col A = "Yes"):** Rows are highlighted in **Light Green** to indicate active tracking.

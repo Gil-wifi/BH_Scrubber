@@ -22,7 +22,7 @@ Historically, scheduling conflicts arose because all holidays were treated equal
 * **🛡️ Robust Data Estimation (NEW):** If future year data (e.g., 2027) is missing, the tool intelligently attempts to estimate dates based on the previous year's patterns (marked clearly as `(Est)`).
 * **📅 Dynamic Calendar Generation:** Automatically builds a 365/366-day calendar grid based on your needs.
 * **Solar Calendar:** Standard Jan 1 – Dec 31.
-* **Fiscal Calendar:** Supports custom start offsets (e.g., +5 weeks) while maintaining a full year duration.
+* **Fiscal Calendar:** Supports custom start offsets (e.g., `+5` or `-5` weeks) while maintaining a full year duration.
 * **Multi-Year Scraping:** Intelligent scraper automatically fetches data from adjacent years if a Fiscal year straddles two calendar years (e.g., 2026/2027).
 * **Intelligent Scraping:** Parses `officeholidays.com` to extract dates, names, and holiday types.
 * **Smart Classification:**
@@ -49,7 +49,7 @@ Historically, scheduling conflicts arose because all holidays were treated equal
 
 3. **Follow Prompts:**
     * Enter the target year (e.g., `2026`).
-    * **Fiscal Calendar:** Answer `y` if needed, then specify the offset in weeks (e.g., `5`).
+    * **Fiscal Calendar:** Answer `y` if needed, then specify the offset in weeks (e.g., `+4` for forward, `-2` for backward).
     * Review the configuration and confirm to start.
 
 4. **View Results:**
