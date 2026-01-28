@@ -1,9 +1,9 @@
 # BH_Scrubber (Bank Holiday Scraper)
 
-![Version](https://img.shields.io/badge/version-2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.x-green.svg)
 
-**BH_Scrubber** is a specialized Python automation tool designed to scrape, aggregate, and classify global public holiday data from [OfficeHolidays.com](https://www.officeholidays.com) into a master `.ods` spreadsheet.
+**BH_Scrubber** is a specialized Python automation tool designed to scrape, aggregate, and classify global public holiday data from [OfficeHolidays.com](https://www.officeholidays.com) into a generated `.ods` spreadsheet. It supports both **Solar** and **Fiscal** calendars.
 
 ## 🎯 Motivation & Scope
 
@@ -17,8 +17,12 @@ Historically, scheduling conflicts arose because all holidays were treated equal
 2. **Visualizing Support:** It highlights supported countries (Green) and greys out unsupported ones (Grey), providing an instant visual status map for planners.
 3. **Automating Updates:** It eliminates manual data entry errors by scraping the latest data directly from a trusted source.
 
-## ✨ Key Features (v2.0)
+## ✨ Key Features (v2.1)
 
+* **📅 Dynamic Calendar Generation:** Automatically builds a 365/366-day calendar grid based on your needs.
+  * **Solar Calendar:** Standard Jan 1 – Dec 31.
+  * **Fiscal Calendar:** Supports custom start offsets (e.g., +5 weeks) while maintaining a full year duration.
+* **Multi-Year Scraping:** Intelligent scraper automatically fetches data from adjacent years if a Fiscal year straddles two calendar years (e.g., 2026/2027).
 * **Intelligent Scraping:** Parses `officeholidays.com` to extract dates, names, and holiday types.
 * **Smart Classification:**
   * **National Holidays:** Flagged and styled in **Amber** (#ffbf00).
@@ -32,7 +36,7 @@ Historically, scheduling conflicts arose because all holidays were treated equal
 ## 🚀 Usage
 
 1. **Prepare the Input File:**
-    * Ensure `BH_List.ods` is present.
+    * Ensure `country_List.ods` is present (Columns: Supported, Region, SubRegion, Country).
     * To support a country, mark **Column A** as `Yes`. To exclude it, mark `No`.
     * Ensure the country name in **Column D** has a hyperlink to its `officeholidays.com` page.
 
@@ -44,17 +48,17 @@ Historically, scheduling conflicts arose because all holidays were treated equal
 
 3. **Follow Prompts:**
     * Enter the target year (e.g., `2026`).
-    * Review the country count and integrity check.
-    * Confirm to start the scraping process.
+    * **Fiscal Calendar:** Answer `y` if needed, then specify the offset in weeks (e.g., `5`).
+    * Review the configuration and confirm to start.
 
 4. **View Results:**
-    * The tool saves a new file: `BH_List_YYYYMMDD.ods`.
+    * The tool saves a new file: `BH_List_YYYYMMDD.ods` (based on execution date).
     * Open it in LibreOffice Calc or Excel to view the populated and styled calendar.
 
 ## 🛠 Project Structure
 
-* `bh_Scrubber.py`: Main script containing scraping and ODS manipulation logic.
-* `BH_List.ods`: Template spreadsheet.
+* `bh_Scrubber.py`: Main script (v2.1).
+* `country_List.ods`: Template spreadsheet.
 * `BH_Scrubber.md`: Detailed technical documentation.
 
 ## 👤 Author

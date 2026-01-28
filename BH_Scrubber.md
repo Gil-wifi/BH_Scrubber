@@ -10,8 +10,8 @@ This tool was created to simplify the WFO (Workforce Optimization) task of track
 
 ## Input Data
 
-* **File:** `BH_List.ods`
-* **Output:** `BH_List_YYYYMMDD.ods` (Daily timestamped generation)
+* **File:** `country_List.ods` (Template)
+* **Output:** `BH_List_YYYYMMDD.ods` (Generated daily)
 * **Target Countries:** Listed in **Column D** starting from **Row 2**
 
 ## File Structure
@@ -43,8 +43,11 @@ Source URLs are stored as **hyperlinks on the country name** in Column D.
 
 Holiday data is populated into the calendar matrix.
 
-* **Calendar Range:** Columns **E** through **ND** (starting from column index 4)
+* **Calendar Range:** Generated programmatically starting from Column **E**.
 * **Date Format:** `Thu 01/01/26` (Day abbreviation + DD/MM/YY)
+* **Calendar Types:**
+  * **Solar:** Jan 1st - Dec 31st.
+  * **Fiscal:** Custom start date (Jan 1st + Offset Weeks). Spans full year duration.
 * **Visual Styling (Output File):**
   * **Row Styling (Columns A-ND):**
     * **Supported Countries (Col A = "Yes"):** Rows are highlighted in **Light Green** to indicate active tracking.
@@ -63,6 +66,7 @@ Holiday data is populated into the calendar matrix.
 
 ## Version History
 
+* **v2.1** - Added Automatic Calendar Generation, Fiscal Year Support, and Multi-Year Scraping.
 * **v2.0** - Implemented Row Styling: Green for 'Yes' (Supported), Grey for 'No' (Unsupported).
 * **v1.6** - Added support for Regional (Pink) vs National (Amber) holidays
 * **v1.4** - Bug fixes, verified holiday population

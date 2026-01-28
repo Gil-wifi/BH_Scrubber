@@ -2,7 +2,9 @@ __pycache__/
 *.pyc
 *.ods
 !BH_List.ods
+!country_List.ods
 lastRun*.txt
 *.temp_new
 .DS_Store
 otherfiles/
+.~lock*
