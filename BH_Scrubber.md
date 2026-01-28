@@ -36,24 +36,27 @@ Source URLs are stored as **hyperlinks on the country name** in Column D.
 
 ### Phase 2: Data Population
 
-Holiday data is populated into the calendar matrix with **6pt font size** and **amber highlighting**.
+Holiday data is populated into the calendar matrix.
 
 * **Calendar Range:** Columns **E** through **ND** (starting from column index 4)
 * **Date Format:** `Thu 01/01/26` (Day abbreviation + DD/MM/YY)
-* **Styling:** Amber background (#ffbf00), 6pt font
+* **Styling:**
+  * **National/Public Holidays:** Amber background (#ffbf00), 6pt font
+  * **Regional/Local Holidays:** Light Pink background (#ffb6c1), 6pt font
 
 ## Scripts
 
 | Script              | Purpose                                             |
 |---------------------|-----------------------------------------------------|
-| `bh_Scrubber.py`    | Main scraper (v1.2) - reads hyperlinks from Col D   |
+| `bh_Scrubber.py`    | Main scraper (v1.6) - supports National vs Regional |
 | `populate_urls.py`  | Generates URLs for all countries                    |
 | `fix_404_countries.py` | Fixes URL slugs for 404 errors                   |
 
 ## Version History
 
-* **v1.4** - Bug fixes, verified holiday population working correctly
-* **v1.2** - Hyperlinks on country names, 6pt font for holidays, calendar starts Col E
+* **v1.6** - Added support for Regional (Pink) vs National (Amber) holidays
+* **v1.4** - Bug fixes, verified holiday population
+* **v1.2** - Hyperlinks on country names, 6pt font, calendar starts Col E
 * **v1.0** - Initial release
 
 ## Author

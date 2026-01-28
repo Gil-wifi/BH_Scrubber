@@ -5,7 +5,7 @@ BH_Scrubber - Bank Holiday Data Aggregation Tool
 Scrapes public holiday data from officeholidays.com and populates
 the BH_List.ods spreadsheet with holiday names and dates.
 
-Version: 1.4
+Version: 1.6
 Author: Gil Alowaifi
 Date: 2026-01-28
 """
@@ -22,18 +22,23 @@ from html.parser import HTMLParser
 import time
 
 class OfficeHolidaysParser(HTMLParser):
+    """Parses officeholidays.com HTML to extract holiday names, dates, and types."""
+    
     def __init__(self):
         super().__init__()
         self.in_table = False
         self.in_row = False
         self.current_cell_idx = 0
-        self.holidays = [] # List of (date_str, name)
+        self.holidays = []  # List of (date_str, name, is_national)
         
         self.temp_date = None
         self.temp_name = None
+        self.temp_type = None
         
         self.recording_name = False
+        self.recording_type = False
         self.current_name_text = ""
+        self.current_type_text = ""
 
     def handle_starttag(self, tag, attrs):
         attrs_dict = dict(attrs)
@@ -47,9 +52,15 @@ class OfficeHolidaysParser(HTMLParser):
             self.current_cell_idx = 0
             self.temp_date = None
             self.temp_name = None
+            self.temp_type = None
+            self.current_type_text = ""
             
         if self.in_row and tag == 'td':
             self.current_cell_idx += 1
+            # Cell 4 is the holiday type column
+            if self.current_cell_idx == 4:
+                self.recording_type = True
+                self.current_type_text = ""
             
         if self.in_row and tag == 'time':
             # Date usually in datetime attr
@@ -62,6 +73,10 @@ class OfficeHolidaysParser(HTMLParser):
     def handle_endtag(self, tag):
         if tag == 'table':
             self.in_table = False
+        if tag == 'td':
+            if self.recording_type:
+                self.recording_type = False
+                self.temp_type = self.current_type_text.strip()
         if tag == 'tr':
             self.in_row = False
             if self.temp_date and self.current_name_text:
@@ -69,15 +84,21 @@ class OfficeHolidaysParser(HTMLParser):
                 try:
                     dt = datetime.strptime(self.temp_date, "%Y-%m-%d")
                     fmt_date = dt.strftime("%d/%m/%y")
-                    self.holidays.append((fmt_date, self.current_name_text.strip()))
+                    # Determine if national (Public/National) or regional
+                    type_lower = (self.temp_type or '').lower()
+                    is_national = 'public' in type_lower or 'national' in type_lower or 'bank' in type_lower
+                    self.holidays.append((fmt_date, self.current_name_text.strip(), is_national))
                 except ValueError:
-                    pass # Invalid date format
+                    pass  # Invalid date format
         if tag == 'a':
             self.recording_name = False
 
     def handle_data(self, data):
         if self.recording_name:
             self.current_name_text += data
+        if self.recording_type:
+            self.current_type_text += data
+
 
 class HolidayScraper:
     def fetch_holidays(self, url):
@@ -325,6 +346,36 @@ class ODSHandler:
             })
         return style_name
 
+    def ensure_pink_style(self):
+        """Creates or returns the 'PinkHoliday' cell style with light pink background and 6pt font."""
+        auto_styles = self.root.find('office:automatic-styles', self.ns)
+        if auto_styles is None:
+            auto_styles = ET.SubElement(self.root, f'{{{self.ns["office"]}}}automatic-styles')
+        
+        # Look for existing
+        style_name = "PinkHoliday"
+        found = False
+        for style in auto_styles.findall('style:style', self.ns):
+            if style.get(f'{{{self.ns["style"]}}}name') == style_name:
+                found = True
+                break
+        
+        if not found:
+            style = ET.SubElement(auto_styles, f'{{{self.ns["style"]}}}style', {
+                f'{{{self.ns["style"]}}}name': style_name,
+                f'{{{self.ns["style"]}}}family': "table-cell",
+                f'{{{self.ns["style"]}}}parent-style-name': "Default"
+            })
+            # Cell properties - light pink background
+            ET.SubElement(style, f'{{{self.ns["style"]}}}table-cell-properties', {
+                f'{{{self.ns["fo"]}}}background-color': "#ffb6c1"  # Light Pink
+            })
+            # Text properties - 6pt font size
+            ET.SubElement(style, f'{{{self.ns["style"]}}}text-properties', {
+                f'{{{self.ns["fo"]}}}font-size': "6pt"
+            })
+        return style_name
+
     def save(self, output_filename=None):
         """Save the modified ODS file. Default filename: BH_List_YYYYMMDD.ods"""
         from datetime import datetime
@@ -400,6 +451,7 @@ if __name__ == "__main__":
         if proceed == 'y':
             scraper = HolidayScraper()
             amber_style = ods.ensure_amber_style()
+            pink_style = ods.ensure_pink_style()
             updates_made = 0
             
             for row_idx, country_name in countries:
@@ -421,11 +473,14 @@ if __name__ == "__main__":
                     
                     if holidays:
                         print(f"  Found {len(holidays)} holidays.")
-                        for date_str, h_name in holidays:
+                        for date_str, h_name, is_national in holidays:
                             if date_str in ods.date_map:
                                 col_idx_date = ods.date_map[date_str]
+                                # Choose style based on type
+                                style_to_use = amber_style if is_national else pink_style
+                                
                                 # Write to cell
-                                ods.update_cell_text(row_idx, col_idx_date, h_name, amber_style)
+                                ods.update_cell_text(row_idx, col_idx_date, h_name, style_to_use)
                             else:
                                 # print(f"  Date {date_str} not in headers.")
                                 pass
