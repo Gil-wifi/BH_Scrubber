@@ -5,8 +5,8 @@ BH_Scrubber - Bank Holiday Data Aggregation Tool
 Scrapes public holiday data from officeholidays.com and populates
 the BH_List.ods spreadsheet with holiday names and dates.
 
-Version: 1.0
-Author: BH_Scrubber Project
+Version: 1.2
+Author: Gil Alowaifi
 Date: 2026-01-28
 """
 
@@ -188,8 +188,7 @@ class ODSHandler:
         for i, row in enumerate(rows):
             if i < 1: continue
             
-            # Get Column D (Index 3) - Updated for new structure
-            # We need to traverse cells carefully because of 'number-columns-repeated'
+            # Get Column D (Index 3) - Country name (may be hyperlinked)
             cells = row.findall('table:table-cell', self.ns)
             col_idx = 0
             country_name = None
@@ -202,7 +201,13 @@ class ODSHandler:
                 # Check if this cell range covers index 3 (Column D)
                 if col_idx <= COUNTRY_COL < col_idx + count:
                     text_node = cell.find('text:p', self.ns)
-                    country_name = text_node.text if text_node is not None else ""
+                    if text_node is not None:
+                        # Check for hyperlink first
+                        link = text_node.find('text:a', self.ns)
+                        if link is not None and link.text:
+                            country_name = link.text
+                        elif text_node.text:
+                            country_name = text_node.text
                     break
                 
                 col_idx += count
@@ -291,7 +296,7 @@ class ODSHandler:
                 cell.attrib[f'{{{self.ns["table"]}}}style-name'] = style_name
 
     def ensure_amber_style(self):
-        # Check if 'AmberHoliday' style exists in content.xml automatic-styles
+        """Creates or returns the 'AmberHoliday' cell style with amber background and 6pt font."""
         auto_styles = self.root.find('office:automatic-styles', self.ns)
         if auto_styles is None:
             auto_styles = ET.SubElement(self.root, f'{{{self.ns["office"]}}}automatic-styles')
@@ -310,8 +315,13 @@ class ODSHandler:
                 f'{{{self.ns["style"]}}}family': "table-cell",
                 f'{{{self.ns["style"]}}}parent-style-name': "Default"
             })
-            props = ET.SubElement(style, f'{{{self.ns["style"]}}}table-cell-properties', {
-                f'{{{self.ns["fo"]}}}background-color': "#ffbf00" # Amberish
+            # Cell properties - amber background
+            ET.SubElement(style, f'{{{self.ns["style"]}}}table-cell-properties', {
+                f'{{{self.ns["fo"]}}}background-color': "#ffbf00"  # Amber
+            })
+            # Text properties - 6pt font size
+            ET.SubElement(style, f'{{{self.ns["style"]}}}text-properties', {
+                f'{{{self.ns["fo"]}}}font-size': "6pt"
             })
         return style_name
 
