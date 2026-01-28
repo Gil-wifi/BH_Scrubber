@@ -1,6 +1,6 @@
 # BH_Scrubber (Bank Holiday Scraper)
 
-![Version](https://img.shields.io/badge/version-2.1-blue.svg)
+![Version](https://img.shields.io/badge/version-2.2-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.x-green.svg)
 
 **BH_Scrubber** is a specialized Python automation tool designed to scrape, aggregate, and classify global public holiday data from [OfficeHolidays.com](https://www.officeholidays.com) into a generated `.ods` spreadsheet. It supports both **Solar** and **Fiscal** calendars.
@@ -17,11 +17,12 @@ Historically, scheduling conflicts arose because all holidays were treated equal
 2. **Visualizing Support:** It highlights supported countries (Green) and greys out unsupported ones (Grey), providing an instant visual status map for planners.
 3. **Automating Updates:** It eliminates manual data entry errors by scraping the latest data directly from a trusted source.
 
-## ✨ Key Features (v2.1)
+## ✨ Key Features (v2.2)
 
+* **🛡️ Robust Data Estimation (NEW):** If future year data (e.g., 2027) is missing, the tool intelligently attempts to estimate dates based on the previous year's patterns (marked clearly as `(Est)`).
 * **📅 Dynamic Calendar Generation:** Automatically builds a 365/366-day calendar grid based on your needs.
-  * **Solar Calendar:** Standard Jan 1 – Dec 31.
-  * **Fiscal Calendar:** Supports custom start offsets (e.g., +5 weeks) while maintaining a full year duration.
+* **Solar Calendar:** Standard Jan 1 – Dec 31.
+* **Fiscal Calendar:** Supports custom start offsets (e.g., +5 weeks) while maintaining a full year duration.
 * **Multi-Year Scraping:** Intelligent scraper automatically fetches data from adjacent years if a Fiscal year straddles two calendar years (e.g., 2026/2027).
 * **Intelligent Scraping:** Parses `officeholidays.com` to extract dates, names, and holiday types.
 * **Smart Classification:**

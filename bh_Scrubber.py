@@ -11,12 +11,12 @@ Features:
 - Applies Green (Supported) / Grey (Unsupported) row styling.
 - Distinguishes National (Amber) vs Regional (Pink) holidays.
 
-Version: 2.1
+Version: 2.2
 Author: Gil Alowaifi
 Date: 2026-01-28
 """
 
-__version__ = "2.1"
+__version__ = "2.2"
 
 import zipfile
 import xml.etree.ElementTree as ET

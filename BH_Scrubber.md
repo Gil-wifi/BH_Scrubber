@@ -70,6 +70,7 @@ Holiday data is populated into the calendar matrix.
 
 ## Version History
 
+* **v2.2** - Implemented Fallback Estimation logic for missing future year data.
 * **v2.1** - Added Automatic Calendar Generation, Fiscal Year Support, and Multi-Year Scraping.
 * **v2.0** - Implemented Row Styling: Green for 'Yes' (Supported), Grey for 'No' (Unsupported).
 * **v1.6** - Added support for Regional (Pink) vs National (Amber) holidays
