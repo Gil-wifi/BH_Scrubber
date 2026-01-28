@@ -143,9 +143,13 @@ class HolidayScraper:
                 parser.feed(html_content)
                 all_holidays.extend(parser.holidays)
                 
+            except urllib.error.HTTPError as e:
+                if e.code == 404 and year > datetime.now().year:
+                    print(f"    Note: Data for {year} not yet published.")
+                else:
+                    print(f"    Scrape Warning ({url}): {e}")
             except Exception as e:
-                # 404 for a specific year might happen if data not published
-                print(f"    Scrape Warning ({url}): {e}")
+                print(f"    Scrape Error ({url}): {e}")
                 
         return all_holidays
 

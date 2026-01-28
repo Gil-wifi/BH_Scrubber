@@ -64,6 +64,10 @@ Holiday data is populated into the calendar matrix.
 | `populate_urls.py`  | Generates URLs for all countries                    |
 | `fix_404_countries.py` | Fixes URL slugs for 404 errors                   |
 
+## Known Limitations
+
+* **Future Data Availability:** Sources like `officeholidays.com` may not have published data for future years (e.g., 2027) at the time of scraping. In these cases, the tool will skip the missing year and log a note.
+
 ## Version History
 
 * **v2.1** - Added Automatic Calendar Generation, Fiscal Year Support, and Multi-Year Scraping.
