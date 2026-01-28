@@ -11,6 +11,7 @@ This tool was created to simplify the WFO (Workforce Optimization) task of track
 ## Input Data
 
 * **File:** `BH_List.ods`
+* **Output:** `BH_List_YYYYMMDD.ods` (Daily timestamped generation)
 * **Target Countries:** Listed in **Column D** starting from **Row 2**
 
 ## File Structure
