@@ -54,6 +54,7 @@ Holiday data is populated into the calendar matrix.
 
 ## Version History
 
+* **v2.0** - Implemented Row Styling: Green for 'Yes' (Supported), Grey for 'No' (Unsupported).
 * **v1.6** - Added support for Regional (Pink) vs National (Amber) holidays
 * **v1.4** - Bug fixes, verified holiday population
 * **v1.2** - Hyperlinks on country names, 6pt font, calendar starts Col E

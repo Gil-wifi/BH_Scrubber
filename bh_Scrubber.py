@@ -5,12 +5,12 @@ BH_Scrubber - Bank Holiday Data Aggregation Tool
 Scrapes public holiday data from officeholidays.com and populates
 the BH_List.ods spreadsheet with holiday names and dates.
 
-Version: 1.6
+Version: 2.0
 Author: Gil Alowaifi
 Date: 2026-01-28
 """
 
-__version__ = "1.6"
+__version__ = "2.0"
 
 import zipfile
 import xml.etree.ElementTree as ET
@@ -88,11 +88,7 @@ class OfficeHolidaysParser(HTMLParser):
                     type_lower = (self.temp_type or '').lower()
                     
                     # Logic: Default to National (True) unless explicitly Regional/Local
-                    # This handles countries like Poland where Col 4 is "Local Name" (not "Public Holiday")
                     is_regional = 'regional' in type_lower or 'local' in type_lower
-                    
-                    # Optional: We could filtering 'not a public holiday' here if requested, 
-                    # but for now we stick to the Amber/Pink distinction.
                     
                     is_national = not is_regional
                     self.holidays.append((fmt_date, self.current_name_text.strip(), is_national))
@@ -315,11 +311,20 @@ class ODSHandler:
                     cell.remove(child)
             
             p = ET.Element(f'{{{self.ns["text"]}}}p')
-            p.text = text_val
-            cell.append(p)
-            
-            # Set type to string
-            cell.attrib[f'{{{self.ns["office"]}}}value-type'] = "string"
+            if text_val: # Only set text if provided
+                p.text = text_val
+                cell.append(p)
+                # Set type to string if text provided
+                cell.attrib[f'{{{self.ns["office"]}}}value-type'] = "string"
+            else:
+                 # If text_val is None, we just updated style, do NOT change value-type or append empty p?
+                 # Actually, update_cell_text is usually for text.
+                 # If we pass None, it might mean "Clear text" or "Only Update Style".
+                 # Given usages in new loop: update_cell_text(..., None, grey_style) means Clear Text + Set Style?
+                 # Or just Set Style?
+                 # Let's assume it clears text if None is passed, because we removed existing text-p above.
+                 # If we want to preserve text, we should pass existing text.
+                 pass
             
             if style_name:
                 cell.attrib[f'{{{self.ns["table"]}}}style-name'] = style_name
@@ -384,6 +389,50 @@ class ODSHandler:
             })
         return style_name
 
+    def ensure_row_styles(self):
+        """Creates styles for Green (Supported) and Grey (Unsupported) rows."""
+        auto_styles = self.root.find('office:automatic-styles', self.ns)
+        if auto_styles is None:
+            auto_styles = ET.SubElement(self.root, f'{{{self.ns["office"]}}}automatic-styles')
+
+        def create_style(name, bg_color):
+            # Check if exists
+            for style in auto_styles.findall('style:style', self.ns):
+                if style.get(f'{{{self.ns["style"]}}}name') == name:
+                    return name
+            
+            # Create new
+            style = ET.SubElement(auto_styles, f'{{{self.ns["style"]}}}style', {
+                f'{{{self.ns["style"]}}}name': name,
+                f'{{{self.ns["style"]}}}family': "table-cell",
+                f'{{{self.ns["style"]}}}parent-style-name': "Default"
+            })
+            ET.SubElement(style, f'{{{self.ns["style"]}}}table-cell-properties', {
+                f'{{{self.ns["fo"]}}}background-color': bg_color
+            })
+            return name
+
+        # GreenRow (Light Green for 'Yes' base cells)
+        self.style_green = create_style("GreenRow", "#ccffcc") 
+        # GreyRow (Medium Grey for 'No' cells)
+        self.style_grey = create_style("GreyRow", "#808080")
+        
+        return self.style_green, self.style_grey
+
+    def apply_row_style(self, row_idx, start_col, end_col, style_name, exclude_styles=None, force=False):
+        """Applies a style to a range of cells in a row, optionally preserving existing specific styles."""
+        for c_idx in range(start_col, end_col + 1):
+            cell = self.get_cell_node(row_idx, c_idx)
+            if cell is not None:
+                current_style = cell.get(f'{{{self.ns["table"]}}}style-name')
+                
+                # If we are not forcing, and the cell has an excluded style (e.g. AmberHoliday), skip it.
+                if not force and exclude_styles and current_style in exclude_styles:
+                    continue
+                
+                # Apply new style
+                cell.attrib[f'{{{self.ns["table"]}}}style-name'] = style_name
+
     def save(self, output_filename=None):
         """Save the modified ODS file. Default filename: BH_List_YYYYMMDD.ods"""
         from datetime import datetime
@@ -394,9 +443,6 @@ class ODSHandler:
         
         # We need to repack the zip
         temp_zip = output_filename + ".temp_new"
-        
-        # If overwriting self.filename, we read from self.filename and write to temp, then move.
-        # If output is different, we can just write to output (but we need base files from input).
         
         with zipfile.ZipFile(self.filename, 'r') as zin:
             with zipfile.ZipFile(temp_zip, 'w') as zout:
@@ -460,21 +506,48 @@ if __name__ == "__main__":
             scraper = HolidayScraper()
             amber_style = ods.ensure_amber_style()
             pink_style = ods.ensure_pink_style()
+            green_style, grey_style = ods.ensure_row_styles()
+            
             updates_made = 0
             
+            # Use max(values) to get the last date column index
+            max_col_idx = max(ods.date_map.values()) if ods.date_map else 370
+            
             for row_idx, country_name in countries:
-                # Get URL from hyperlink in Column D (Index 3)
+                # 1. Check Status
+                status = "Blank"
+                c_a = ods.get_cell_node(row_idx, 0) # Column 0
+                if c_a is not None:
+                    p = c_a.find('text:p', ods.ns)
+                    if p is not None and p.text:
+                        t = p.text.strip().lower()
+                        if t == 'yes': status = 'Yes'
+                        elif t == 'no': status = 'No'
+
+                # 2. Apply Base Style
+                if status == 'Yes':
+                    # Color A (0) to end
+                    # Exclude holidays so we don't paint over them IF they exist, but see 3.
+                    ods.apply_row_style(row_idx, 0, max_col_idx, green_style, exclude_styles=['AmberHoliday', 'PinkHoliday'])
+                elif status == 'No':
+                    # Color A (0) to end, force overwrite
+                    ods.apply_row_style(row_idx, 0, max_col_idx, grey_style, force=True)
+
+                # 3. Scrape Logic
+                # If No, we skip scraping (and it's already grey)
+                if status == 'No':
+                    continue
+
+                # Get URL
                 url_text = ""
                 cell = ods.get_cell_node(row_idx, COUNTRY_COL)
                 if cell is not None:
-                    text_node = cell.find('text:p', ods.ns)
-                    if text_node is not None:
-                        link = text_node.find('text:a', ods.ns)
-                        if link is not None:
-                            url_text = link.attrib.get(f'{{{ods.ns["xlink"]}}}href', '')
-                
-                # print(f"DEBUG: {country_name} -> URL: '{url_text}'") # Uncomment for verbose debug
-                
+                    tn = cell.find('text:p', ods.ns)
+                    if tn is not None:
+                        lnk = tn.find('text:a', ods.ns)
+                        if lnk is not None:
+                            url_text = lnk.attrib.get(f'{{{ods.ns["xlink"]}}}href', '')
+
                 if url_text and "officeholidays.com" in url_text:
                     print(f"Scraping {country_name}...")
                     holidays = scraper.fetch_holidays(url_text)
@@ -484,20 +557,18 @@ if __name__ == "__main__":
                         for date_str, h_name, is_national in holidays:
                             if date_str in ods.date_map:
                                 col_idx_date = ods.date_map[date_str]
-                                # Choose style based on type
+                                # Choose style
                                 style_to_use = amber_style if is_national else pink_style
                                 
-                                # Write to cell
+                                # Write to cell (Overwrites Green with Amber/Pink)
                                 ods.update_cell_text(row_idx, col_idx_date, h_name, style_to_use)
-                            else:
-                                # print(f"  Date {date_str} not in headers.")
-                                pass
+                            pass
                         updates_made += 1
-                        time.sleep(0.5) # Be nice to the server
+                        time.sleep(0.5)
                     else:
                         print("  No holidays found (or parse error).")
             
-            if updates_made > 0:
+            if updates_made > 0 or True:
                 ods.save()
                 print("Scraping complete and file saved.")
             else:
