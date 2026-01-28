@@ -52,6 +52,7 @@ Holiday data is populated into the calendar matrix with **6pt font size** and **
 
 ## Version History
 
+* **v1.4** - Bug fixes, verified holiday population working correctly
 * **v1.2** - Hyperlinks on country names, 6pt font for holidays, calendar starts Col E
 * **v1.0** - Initial release
 

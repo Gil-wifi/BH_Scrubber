@@ -5,7 +5,7 @@ BH_Scrubber - Bank Holiday Data Aggregation Tool
 Scrapes public holiday data from officeholidays.com and populates
 the BH_List.ods spreadsheet with holiday names and dates.
 
-Version: 1.2
+Version: 1.4
 Author: Gil Alowaifi
 Date: 2026-01-28
 """
