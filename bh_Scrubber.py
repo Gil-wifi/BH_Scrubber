@@ -10,7 +10,7 @@ Author: Gil Alowaifi
 Date: 2026-01-28
 """
 
-__version__ = "1.2"
+__version__ = "1.6"
 
 import zipfile
 import xml.etree.ElementTree as ET
@@ -84,9 +84,17 @@ class OfficeHolidaysParser(HTMLParser):
                 try:
                     dt = datetime.strptime(self.temp_date, "%Y-%m-%d")
                     fmt_date = dt.strftime("%d/%m/%y")
-                    # Determine if national (Public/National) or regional
+                    # Determine if regional/local
                     type_lower = (self.temp_type or '').lower()
-                    is_national = 'public' in type_lower or 'national' in type_lower or 'bank' in type_lower
+                    
+                    # Logic: Default to National (True) unless explicitly Regional/Local
+                    # This handles countries like Poland where Col 4 is "Local Name" (not "Public Holiday")
+                    is_regional = 'regional' in type_lower or 'local' in type_lower
+                    
+                    # Optional: We could filtering 'not a public holiday' here if requested, 
+                    # but for now we stick to the Amber/Pink distinction.
+                    
+                    is_national = not is_regional
                     self.holidays.append((fmt_date, self.current_name_text.strip(), is_national))
                 except ValueError:
                     pass  # Invalid date format
