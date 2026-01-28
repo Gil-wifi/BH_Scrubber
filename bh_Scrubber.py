@@ -10,7 +10,7 @@ Author: BH_Scrubber Project
 Date: 2026-01-28
 """
 
-__version__ = "1.0"
+__version__ = "1.2"
 
 import zipfile
 import xml.etree.ElementTree as ET
@@ -109,7 +109,8 @@ class ODSHandler:
             'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0',
             'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0',
             'style': 'urn:oasis:names:tc:opendocument:xmlns:style:1.0',
-            'fo': 'urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0'
+            'fo': 'urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0',
+            'xlink': 'http://www.w3.org/1999/xlink'
         }
         for prefix, uri in self.ns.items():
             ET.register_namespace(prefix, uri)
@@ -354,16 +355,19 @@ if __name__ == "__main__":
     print(f"Found {len(countries)} countries in the list.")
     
     missing_data_count = 0
-    URL_COL = 4  # Column E - Updated for new structure
+    COUNTRY_COL = 3  # Column D - Country name with hyperlink
     print("\n--- Processing Status ---")
     for row_idx, country_name in countries:
-        # Check Column E (Index 4) for URL
+        # Check Column D (Index 3) for hyperlink URL
         url_text = ""
-        cell = ods.get_cell_node(row_idx, URL_COL)
+        cell = ods.get_cell_node(row_idx, COUNTRY_COL)
         if cell is not None:
             text_node = cell.find('text:p', ods.ns)
             if text_node is not None:
-                url_text = text_node.text
+                # Look for hyperlink (text:a element)
+                link = text_node.find('text:a', ods.ns)
+                if link is not None:
+                    url_text = link.attrib.get(f'{{{ods.ns["xlink"]}}}href', '')
         
         status = "OK" if url_text and len(url_text) > 5 else "MISSING URL"
         if status == "MISSING URL":
@@ -382,12 +386,15 @@ if __name__ == "__main__":
             updates_made = 0
             
             for row_idx, country_name in countries:
-                # Get URL from Column E (Index 4)
+                # Get URL from hyperlink in Column D (Index 3)
                 url_text = ""
-                cell = ods.get_cell_node(row_idx, URL_COL)
+                cell = ods.get_cell_node(row_idx, COUNTRY_COL)
                 if cell is not None:
                     text_node = cell.find('text:p', ods.ns)
-                    if text_node is not None: url_text = text_node.text
+                    if text_node is not None:
+                        link = text_node.find('text:a', ods.ns)
+                        if link is not None:
+                            url_text = link.attrib.get(f'{{{ods.ns["xlink"]}}}href', '')
                 
                 # print(f"DEBUG: {country_name} -> URL: '{url_text}'") # Uncomment for verbose debug
                 
