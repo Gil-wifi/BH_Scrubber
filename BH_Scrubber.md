@@ -4,6 +4,10 @@
 
 The objective of this project is to populate a master dataset with official 2026 public holiday information for a specific list of countries. The source file is `BH_List.ods`.
 
+## Motivation
+
+This tool was created to simplify the WFO (Workforce Optimization) task of tracking holidays across different countries. Specifically, it distinguishes between **National/Public** holidays (which affect everyone) and **Regional** holidays. Previously, treating all holidays as "National" caused confusion in work programming and scheduling, as colleagues were often unaware of these distinctions. By visualizing these differences, we ensure accurate schedule planning.
+
 ## Input Data
 
 * **File:** `BH_List.ods`
@@ -40,9 +44,13 @@ Holiday data is populated into the calendar matrix.
 
 * **Calendar Range:** Columns **E** through **ND** (starting from column index 4)
 * **Date Format:** `Thu 01/01/26` (Day abbreviation + DD/MM/YY)
-* **Styling:**
-  * **National/Public Holidays:** Amber background (#ffbf00), 6pt font
-  * **Regional/Local Holidays:** Light Pink background (#ffb6c1), 6pt font
+* **Visual Styling (Output File):**
+  * **Row Styling (Columns A-ND):**
+    * **Supported Countries (Col A = "Yes"):** Rows are highlighted in **Light Green** to indicate active tracking.
+    * **Unsupported Countries (Col A = "No"):** Rows are greyed out in **Medium Grey** to visually exclude them from planning.
+  * **Holiday Cells:**
+    * **National/Public Holidays:** **Amber** background (#ffbf00) with 6pt font. These are critical for scheduling.
+    * **Regional/Local Holidays:** **Light Pink** background (#ffb6c1) with 6pt font. These are informational and may not affect the entire workforce.
 
 ## Scripts
 
