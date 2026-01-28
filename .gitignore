@@ -5,3 +5,4 @@ __pycache__/
 lastRun*.txt
 *.temp_new
 .DS_Store
+otherfiles/
