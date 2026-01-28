@@ -66,7 +66,7 @@ Holiday data is populated into the calendar matrix.
 
 ## Known Limitations
 
-* **Future Data Availability:** Sources like `officeholidays.com` may not have published data for future years (e.g., 2027) at the time of scraping. In these cases, the tool will skip the missing year and log a note.
+* **Future Data Availability:** Sources like `officeholidays.com` may not have published data for future years (e.g., 2027). In such cases, the tool will attempt to **estimate** dates based on the previous year (marked with `(Est)`). Note that moving holidays (e.g., Easter) may drastically differ in date.
 
 ## Version History
 

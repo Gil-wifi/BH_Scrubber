@@ -122,12 +122,14 @@ class HolidayScraper:
             
         seen_urls = set()
         
-        for year in years:
+        # Cache results by year for estimation fallback
+        year_results = {}
+        
+        for year in sorted(list(years)):
             url = f"{clean_url}/{year}"
             if url in seen_urls: continue
             seen_urls.add(url)
             
-            # print(f"    Fetching {url}...") 
             try:
                 req = urllib.request.Request(
                     url, 
@@ -141,11 +143,35 @@ class HolidayScraper:
                     
                 parser = OfficeHolidaysParser()
                 parser.feed(html_content)
-                all_holidays.extend(parser.holidays)
+                current_holidays = parser.holidays
+                year_results[year] = current_holidays
+                all_holidays.extend(current_holidays)
                 
             except urllib.error.HTTPError as e:
-                if e.code == 404 and year > datetime.now().year:
-                    print(f"    Note: Data for {year} not yet published.")
+                # 404 Logic: Try to estimate from previous year if available
+                prev_year = year - 1
+                if e.code == 404 and prev_year in year_results:
+                    print(f"    Note: Data for {year} not found. Estimating from {prev_year}...")
+                    estimated = []
+                    for d, name, is_nat in year_results[prev_year]:
+                        try:
+                            # Project date to current missing year
+                            # Logic: Same Month/Day. 
+                            # Limitation: Moving holidays (Easter) will be wrong date.
+                            # Limitation: Day of week shifts by 1.
+                            new_date = d.replace(year=year)
+                            new_name = f"{name} (Est)"
+                            estimated.append((new_date, new_name, is_nat))
+                        except ValueError:
+                            # Handle Feb 29 on non-leap target year
+                            continue
+                    
+                    year_results[year] = estimated
+                    all_holidays.extend(estimated)
+                    print(f"      -> Generated {len(estimated)} estimated holidays.")
+                    
+                elif e.code == 404 and year > datetime.now().year:
+                    print(f"    Note: Data for {year} not yet published (and no {prev_year} data for fallback).")
                 else:
                     print(f"    Scrape Warning ({url}): {e}")
             except Exception as e:
