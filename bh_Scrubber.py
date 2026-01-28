@@ -139,25 +139,28 @@ class ODSHandler:
         self.spreadsheet = self.root.find('.//office:body/office:spreadsheet', self.ns)
         self.table = self.spreadsheet.find('table:table', self.ns)
         
-        # Parse Dates (Header Row 2 - index 1, based on actual file structure)
+        # Parse Dates (Header Row 1 - index 0, format: 'Thu 01/01/26')
         self.date_map = {} # "DD/MM/YY" -> Column Index
         rows = self.table.findall('table:table-row', self.ns)
-        if len(rows) > 1:
-            header_cells = self.expand_row(rows[1]) # Row 2 (index 1)
+        if len(rows) > 0:
+            header_cells = self.expand_row(rows[0]) # Row 1 (index 0)
             for idx, text in enumerate(header_cells):
-                if "/" in text: # Simple heuristic for date
-                    self.date_map[text] = idx
+                # New format: "Thu 01/01/26" - extract date part
+                if "/" in text:
+                    # Extract just the date portion (after the day abbreviation)
+                    parts = text.split()
+                    date_part = parts[-1] if len(parts) > 1 else text  # Get "01/01/26"
+                    self.date_map[date_part] = idx
                     
                     # Validate Year
                     if self.year:
-                        # Assuming DD/MM/YY or DD/MM/YYYY
-                        parts = text.split('/')
-                        if len(parts) == 3:
-                            y_part = parts[2]
+                        date_parts = date_part.split('/')
+                        if len(date_parts) == 3:
+                            y_part = date_parts[2]
                             target_short = self.year[-2:]
                             target_long = self.year
                             if y_part != target_short and y_part != target_long:
-                                print(f"Warning: Date {text} in header does not match target year {self.year}")
+                                print(f"Warning: Date {date_part} in header does not match target year {self.year}")
 
         print(f"Loaded {len(self.date_map)} date columns.")
 
@@ -177,12 +180,12 @@ class ODSHandler:
         return row_data
 
     def get_countries(self):
-        """Returns list of (row_index, country_name). Starting from Row 3 (index 2)."""
+        """Returns list of (row_index, country_name). Starting from Row 2 (index 1)."""
         countries = []
         rows = self.table.findall('table:table-row', self.ns)
-        # Skip header rows (0 and 1), data starts at row 3 (index 2)
+        # Skip header row (0), data starts at row 2 (index 1)
         for i, row in enumerate(rows):
-            if i < 2: continue
+            if i < 1: continue
             
             # Get Column D (Index 3) - Updated for new structure
             # We need to traverse cells carefully because of 'number-columns-repeated'
