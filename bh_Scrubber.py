@@ -325,7 +325,14 @@ class ODSHandler:
             })
         return style_name
 
-    def save(self, output_filename="BH_List_Updated.ods"):
+    def save(self, output_filename=None):
+        """Save the modified ODS file. Default filename: BH_List_YYYYMMDD.ods"""
+        from datetime import datetime
+        
+        if output_filename is None:
+            date_str = datetime.now().strftime('%Y%m%d')
+            output_filename = f'BH_List_{date_str}.ods'
+        
         # We need to repack the zip
         temp_zip = output_filename + ".temp_new"
         
